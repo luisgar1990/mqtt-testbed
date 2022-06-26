@@ -58,7 +58,7 @@ File for *configuration settings* of the experiment. Settings include, but not l
 | install-broker-dependencies.sh | Install dependencies for the broker. Currently supports only Mosquitto and Moquette. |
 | install-moquette.sh | Installs Moquette in the virtual machine. |
 | install-mosquitto.sh | Installs Mosquitto in the virtual machine. |
-| execute.sh      | *Executes* the experiments and generates the results automatically. |
+| execute.sh      | *Executes* the experiments and generates the results automatically. Also monitors CPU and memory usage of the fuzzer and broker. |
 | setup-host.sh   | Generates output/result directories in host machine. |
 | measure-coverage-broker.sh  | Measures code coverage after the test run has been completed. Currently supports only Mosquitto and Moquette. |
 
