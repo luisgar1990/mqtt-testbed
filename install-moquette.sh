@@ -38,8 +38,6 @@ mkdir "$BROKER_DIR/$STOPPING_CRITERION/trial$TRIAL/moquette"
 echo "Cloning Moquette repository from Github..."
 git clone https://github.com/moquette-io/moquette.git "$BROKER_DIR/$STOPPING_CRITERION/trial$TRIAL/moquette"
 git -C "$BROKER_DIR/$STOPPING_CRITERION/trial$TRIAL/moquette" checkout "$MOQUETTE_BRANCH"
-#cd "$BROKER_DIR/$STOPPING_CRITERION/trial$TRIAL"
-#git clone https://github.com/moquette-io/moquette.git
 
 echo "Removing -Xplugin:ErrorProne in broker/pom.xml to compile Moquette successfully"
 sed -i 's|<arg>-Xplugin:ErrorProne</arg>|<!--<arg>-Xplugin:ErrorProne</arg>-->|g' "$BROKER_DIR/$STOPPING_CRITERION/trial$TRIAL/moquette/broker/pom.xml"
@@ -48,8 +46,5 @@ sed -i 's|</annotationProcessorPaths>|<annotationProcessorPaths>-->|g' "$BROKER_
 
 echo "Install in local maven repository (This step is necessary in order for the command mvn cobertura:instrument to execute successfully)"
 mvn -f "$BROKER_DIR/$STOPPING_CRITERION/trial$TRIAL/moquette/pom.xml" install -DskipTests
-#cd "$BROKER_DIR/$STOPPING_CRITERION/trial$TRIAL/moquette"
-#mvn install -DskipTests
 
-#cd "/vagrant/mqtt_fuzzers/phd/experiments"
 ./compile-broker.sh "$BROKER_DIR/$STOPPING_CRITERION/trial$TRIAL/moquette"

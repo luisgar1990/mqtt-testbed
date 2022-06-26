@@ -30,34 +30,24 @@ function compile_moquette(){
 
 	MOQUETTE_DIR="$1"
 
-	#cd "$MOQUETTE_DIR"
-
 	echo "Cleaning Moquette folder..."
 	mvn -f "$MOQUETTE_DIR/pom.xml" clean
-	#mvn clean
 
 	echo "Compiling Moquette..."
 	mvn -f "$MOQUETTE_DIR/pom.xml" compile
-	#mvn compile
 
 	echo "Instrumenting code..."
 	mvn -f "$MOQUETTE_DIR/pom.xml" cobertura:instrument
-	#mvn cobertura:instrument
 
 	echo "Generating .jar file based on Instrumented code..."
-	#jar cfv "$MOQUETTE_DIR/broker/target/generated-classes/cobertura/moquette-broker-0.14-SNAPSHOT.jar" "$MOQUETTE_DIR/broker/target/generated-classes/cobertura/"*
 	cd "$MOQUETTE_DIR/broker/target/generated-classes/cobertura" && jar cfv moquette-broker-0.14-SNAPSHOT.jar *
 	cd "$MOQUETTE_DIR"
 
 	echo "Building Moquette package..."
 	mvn -f "$MOQUETTE_DIR/pom.xml" package -DskipTests
-	#mvn package -DskipTests
 
 	echo "Extracting Moquette package..."
 	tar -xvzf "$MOQUETTE_DIR/distribution/target/distribution-0.14-SNAPSHOT-bundle-tar.tar.gz" -C "$MOQUETTE_DIR/distribution/target/" 
-	#cd "distribution/target" && tar -xvzf distribution-0.14-SNAPSHOT-bundle-tar.tar.gz
-	#cd "$MOQUETTE_DIR"
-
 
 	echo "Removing .jar file with uninstrumented code..."
 	rm "$MOQUETTE_DIR/distribution/target/lib/moquette-broker-0.14-SNAPSHOT.jar"

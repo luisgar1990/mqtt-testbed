@@ -38,10 +38,6 @@ case $1 in
 esac
 
 mkdir $BROKER_DIR || exit 1
-#if [! -d "$BROKER_DIR" ]; then
-#mkdir $BROKER_DIR
-#fi
-
 
 
 for (( i=0; i<${#STOPPING_CRITERION[@]}; i++ ))
@@ -74,4 +70,3 @@ do
 
 	done
 done
-

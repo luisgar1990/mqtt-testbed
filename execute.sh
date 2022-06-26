@@ -43,8 +43,7 @@ iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 echo "Setting up output directories in host..."
 sudo -u luis ./setup-host.sh $1
 
-#NEED FOR LOOP FOR EACH FUZZER
-
+#FOR LOOP FOR EACH FUZZER
 for (( i=0; i<${#STOPPING_CRITERION[@]}; i++ ))
 do
 	for (( j=1; j<=$TRIALS; j++ ))
@@ -84,12 +83,11 @@ do
 
 			cd $SCRIPT_DIR
 
+			#RESTART VM FOR EACH TRIAL
 			echo "Restarting VM..."
 			sudo -u luis vagrant reload $TARGET
 			
 			echo "Starting tshark..."
-			#sudo -u luis touch "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/packets-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.pcap"
-			#sudo -u luis chmod o=rw "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/packets-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.pcap"
 			[[ $1 == "time" ]] && sudo -u luis tshark -i $VM_INTERFACE -f "$CAPTURE_FILTER" -a duration:$(( ${STOPPING_CRITERION[i]} + 45 )) -w "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/packets-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.pcap" -q &
 			[[ $1 == "packets" ]] && sudo -u luis tshark -i $VM_INTERFACE -f "$CAPTURE_FILTER" -c "${STOPPING_CRITERION[i]}" -w "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/packets-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.pcap" -q & TSHARK_PROCESS=$!
 			
@@ -158,7 +156,6 @@ do
 			do
 				[[ $1 == "time" ]] && [[ $SECONDS -ge ${STOPPING_CRITERION[i]} ]] && CRASH=FALSE && break
 				[[ $1 == "packets" ]] && [[ $(ps -p $TSHARK_PROCESS) && $? -ne 0 ]] && CRASH=FALSE && break
-				#[[ $1 == "packets" ]] && [[ $(ps -p $TSHARK_PROCESS) && $? -ne 0 || $SECONDS -ge 120 ]] && CRASH=FALSE && break #for casteur's packet based experiments on Moquette
 
 				ps cax | grep $FUZZ_PROCESS #CHECKS IF LAST PYTHON INSTANCE EXECUTED IS ALIVE
 				if [ $? -eq 0 ]
@@ -187,14 +184,7 @@ do
 				echo "Sending ${BROKER_VERSION[k]} log to output directory..." && mv "../../output/broker/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out" "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/" && echo "DONE"
 
 			else
-				#if [ ${#BROKER_VERSION[@]} -eq 1 ]
-				#then
-				#	(( j-- )) && echo "TRIAL RESET DONE!" #DO TRIAL AGAIN
-
-				#elif [ ${#BROKER_VERSION[@]} -gt 1 ]
-				#then
-				(( k-- )) && echo "FUZZER RESET DONE!" #DO FUZZER AGAIN
-				#fi
+				(( k-- )) && echo "FUZZER RESET DONE!" #DO TRIAL AGAIN
 
 			fi
 

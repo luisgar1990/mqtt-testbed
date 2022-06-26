@@ -41,6 +41,5 @@ export MAVEN_HOME=$WORKING_DIR/$MAVEN_LINK_FILE
 export PATH=\${M2_HOME}/bin:\${PATH}
 EOF
 
-#sudo -u vagrant bash -c source "$MAVEN_ENVIRONMENT_VARIABLE_FILE"
 rm -f $MAVEN_TAR_FILE
 echo "Restart VM for changes to take effect!"
