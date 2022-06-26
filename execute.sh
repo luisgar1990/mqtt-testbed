@@ -41,7 +41,7 @@ echo "Configuring IP tables for Scapy..."
 iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 
 echo "Setting up output directories in host..."
-sudo -u luis ./setup-host.sh $1
+sudo -u $USER ./setup-host.sh $1
 
 #FOR LOOP FOR EACH FUZZER
 for (( i=0; i<${#STOPPING_CRITERION[@]}; i++ ))
@@ -85,11 +85,11 @@ do
 
 			#RESTART VM FOR EACH TRIAL
 			echo "Restarting VM..."
-			sudo -u luis vagrant reload $TARGET
+			sudo -u $USER vagrant reload $TARGET
 			
 			echo "Starting tshark..."
-			[[ $1 == "time" ]] && sudo -u luis tshark -i $VM_INTERFACE -f "$CAPTURE_FILTER" -a duration:$(( ${STOPPING_CRITERION[i]} + 45 )) -w "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/packets-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.pcap" -q &
-			[[ $1 == "packets" ]] && sudo -u luis tshark -i $VM_INTERFACE -f "$CAPTURE_FILTER" -c "${STOPPING_CRITERION[i]}" -w "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/packets-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.pcap" -q & TSHARK_PROCESS=$!
+			[[ $1 == "time" ]] && sudo -u $USER tshark -i $VM_INTERFACE -f "$CAPTURE_FILTER" -a duration:$(( ${STOPPING_CRITERION[i]} + 45 )) -w "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/packets-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.pcap" -q &
+			[[ $1 == "packets" ]] && sudo -u $USER tshark -i $VM_INTERFACE -f "$CAPTURE_FILTER" -c "${STOPPING_CRITERION[i]}" -w "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/packets-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.pcap" -q & TSHARK_PROCESS=$!
 			
 			echo "Waiting 30 seconds for tshark to begin capturing..."
 			sleep 30s
@@ -102,7 +102,7 @@ do
                         fi
 	
 			echo "Starting broker..."
-			sudo -u luis vagrant ssh $TARGET -c "(nohup sh -c '$BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/${BROKER_EXEC[k]} $BROKER_CONFIG') > $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}-$j.out & sleep 1"
+			sudo -u $USER vagrant ssh $TARGET -c "(nohup sh -c '$BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/${BROKER_EXEC[k]} $BROKER_CONFIG') > $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}-$j.out & sleep 1"
 			
 			[[ ${BROKER_VERSION[k]} == "moquette"* ]] && echo "Waiting for ${BROKER_VERSION[k]} to COMPLETELY start..." && sleep 10s #NEED THIS TO WAIT FOR MOQUETTE BROKER TO COMPLETELY START
 
@@ -165,7 +165,7 @@ do
 					CRASH=TRUE
 					echo "$MQTT_FUZZER or ${BROKER_VERSION[k]} crashed in approximately $SECONDS seconds (trial $j)" >> $OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/crashes.out
 					echo "Generating ${BROKER_VERSION[k]} crash log and resetting trial $j..." 
-					sudo -u luis vagrant ssh $TARGET -c "sudo pkill ${BROKER_PROCESS[k]} && cat $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}-$j.out >> $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-crash.out && cp $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-crash.out /vagrant_data/ && sleep 1 && rm $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/*.out && /vagrant/mqtt_fuzzers/phd/experiments/compile-broker.sh $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}"
+					sudo -u $USER vagrant ssh $TARGET -c "sudo pkill ${BROKER_PROCESS[k]} && cat $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}-$j.out >> $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-crash.out && cp $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-crash.out /vagrant_data/ && sleep 1 && rm $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/*.out && /vagrant/mqtt_fuzzers/phd/experiments/compile-broker.sh $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}"
 					cat "../../output/broker/blog-crash.out" >> "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/crashes.out" && rm "../../output/broker/blog-crash.out" && echo "CRASH LOG DONE"
 					sudo kill $FUZZ_PROCESS  #JUST TO MAKE SURE IT IS KILLED
                                         sudo pkill python3.7 #ANOTHER TO MAKE SURE THE EXECUTION OF THE FUZZER ENDED.
@@ -179,7 +179,7 @@ do
 			then
 				echo "Stopping fuzzer $MQTT_FUZZER..." && (ps -p $FUZZ_PROCESS -o %cpu,%mem,cmd; echo "NO CRASH (SECONDS:$SECONDS ${1^^}: ${STOPPING_CRITERION[i]})") > "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/flog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out" && sudo kill $FUZZ_PROCESS
 				
-				echo "Stopping broker ${BROKER_VERSION[k]}..." && sudo -u luis vagrant ssh $TARGET -c "ps -C ${BROKER_PROCESS[k]} -o %cpu,%mem,cmd > $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out && sudo pkill ${BROKER_PROCESS[k]} && cat $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}-$j.out >> $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out && rm $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}-$j.out && /vagrant/mqtt_fuzzers/phd/experiments/measure-coverage-broker.sh $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]} >> $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out && sleep 2 && cp $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out /vagrant_data/ && sleep 1"
+				echo "Stopping broker ${BROKER_VERSION[k]}..." && sudo -u $USER vagrant ssh $TARGET -c "ps -C ${BROKER_PROCESS[k]} -o %cpu,%mem,cmd > $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out && sudo pkill ${BROKER_PROCESS[k]} && cat $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}-$j.out >> $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out && rm $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}-$j.out && /vagrant/mqtt_fuzzers/phd/experiments/measure-coverage-broker.sh $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]} >> $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out && sleep 2 && cp $BROKER_DIR/${STOPPING_CRITERION[i]}/trial$j/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out /vagrant_data/ && sleep 1"
 				
 				echo "Sending ${BROKER_VERSION[k]} log to output directory..." && mv "../../output/broker/blog-$MQTT_FUZZER-${STOPPING_CRITERION[i]}-${BROKER_VERSION[k]}-TRIAL$j.out" "$OUTPUT_DIR/${STOPPING_CRITERION[i]}/trial$j/${BROKER_VERSION[k]}/" && echo "DONE"
 
