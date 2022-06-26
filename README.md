@@ -67,8 +67,8 @@ File for *configuration settings* of the experiment. Settings include, but not l
 
 The following software has to be installed for the testbed to work properly:
 
-* [Vagrant][https://www.vagrantup.com/]
-* [tshark][https://tshark.dev/setup/install/]
+* [Vagrant](https://www.vagrantup.com/)
+* [tshark](https://tshark.dev/setup/install/)
 
 MQTT-fuzzware was developed, tested, and used on Ubuntu Mate 20.04 LTS, which has installed the following software:
 
